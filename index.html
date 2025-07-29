@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Retail Pricing Intelligence</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #ebf8ff 0%, #e0e7ff 100%);
+            min-height: 100vh;
+            color: #374151;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+        
+        .header p {
+            color: #6b7280;
+            font-size: 1.1rem;
+        }
+        
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+        
+        .tab-container {
+            background: white;
+            border-radius: 0.5rem;
+            padding: 0.25rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .tab {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            background: transparent;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+        
+        .tab.active {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .tab:hover:not(.active) {
+            background: #f3f4f6;
+        }
+        
+        .tab:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .upload-area {
+            border: 2px dashed #d1d5db;
+            border-radius: 0.5rem;
+            padding: 3rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            transition: border-color 0.2s;
+        }
+        
+        .upload-area:hover {
+            border-color: #3b82f6;
+        }
+        
+        .upload-area input {
+            display: none;
+        }
+        
+        .upload-label {
+            font-size: 1.125rem;
+            font-weight: 500;
+            color: #374151;
+            cursor: pointer;
+        }
+        
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: #10b981;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #059669;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .metric-card {
+            background: white;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .metric-value {
+            font-size: 1.875rem;
+            font-weight: bold;
+        }
+        
+        .metric-label {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+        
+        .metric-icon {
+            width: 2rem;
+            height: 2rem;
+            opacity: 0.8;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 1rem 0;
+        }
+        
+        .recommendations {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            border-radius: 0.5rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .recommendations h2 {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 1.5rem;
+        }
+        
+        .rec-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+        
+        .rec-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            backdrop-filter: blur(10px);
+        }
+        
+        .rec-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .rec-title {
+            font-weight: 600;
+        }
+        
+        .priority-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .priority-high {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+        }
+        
+        .priority-medium {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fcd34d;
+        }
+        
+        .rec-description {
+            font-size: 0.875rem;
+            opacity: 0.9;
+            margin-bottom: 0.5rem;
+        }
+        
+        .rec-impact {
+            font-size: 0.75rem;
+            color: #bbf7d0;
+            font-weight: 500;
+        }
+        
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        
+        .table th,
+        .table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .table th {
+            font-weight: 600;
+            background: #f9fafb;
+        }
+        
+        .risk-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .risk-high {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        
+        .risk-medium {
+            background: #fef3c7;
+            color: #d97706;
+        }
+        
+        .risk-low {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+        
+        @media (max-width: 768px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .segment-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .segment-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+        }
+        
+        .segment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .segment-name {
+            font-weight: 600;
+        }
+        
+        .margin-badge {
+            background: #f3f4f6;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .segment-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Advanced Retail Pricing Intelligence</h1>
+            <p>Comprehensive pricing analysis with elasticity insights, cannibalization detection, and AI-powered recommendations</p>
+        </div>
+
+        <div class="tabs">
+            <div class="tab-container">
+                <button class="tab active" onclick="switchTab('upload')">📤 Data Upload</button>
+                <button class="tab" id="dashboardTab" onclick="switchTab('dashboard')" disabled>📊 Core Analytics</button>
+                <button class="tab" id="intelligenceTab" onclick="switchTab('intelligence')" disabled>🧠 Business Intelligence</button>
+            </div>
+        </div>
+
+        <!-- Upload Tab -->
+        <div id="upload" class="tab-content">
+            <div class="card" style="max-width: 600px; margin: 0 auto;">
+                <h2 style="text-align: center; margin-bottom: 1.5rem;">Upload Transaction Data</h2>
+                
+                <div class="upload-area">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">📤</div>
+                    <label class="upload-label">
+                        Upload CSV File
+                        <input type="file" accept=".csv" onchange="handleFileUpload(event)">
+                    </label>
+                    <p style="color: #6b7280; margin-top: 0.5rem;">CSV should include: date, product, category, price, cost, quantity, promotion, discount, customer_segment</p>
+                    <div id="loading" class="hidden" style="color: #3b82f6; margin-top: 0.5rem;">Processing...</div>
+                </div>
+
+                <div style="text-align: center;">
+                    <button class="btn btn-primary" onclick="loadSampleData()">Load Sample Furniture Store Data</button>
+                </div>
+
+                <div style="margin-top: 2rem; padding: 1rem; background: #f9fafb; border-radius: 0.5rem;">
+                    <h3 style="font-weight: 600; margin-bottom: 0.5rem;">Expected CSV Format:</h3>
+                    <code style="font-size: 0.875rem; color: #6b7280;">
+                        date,product,category,price,cost,quantity,promotion,discount,customer_segment<br>
+                        2024-01-15,Oak Table,Tables,1200,600,3,false,0,Premium
+                    </code>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="tab-content hidden">
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div>
+                        <div class="metric-label">Total Revenue</div>
+                        <div class="metric-value" style="color: #10b981;" id="totalRevenue">£0</div>
+                    </div>
+                    <div class="metric-icon" style="color: #10b981;">💰</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div>
+                        <div class="metric-label">Total Profit</div>
+                        <div class="metric-value" style="color: #3b82f6;" id="totalProfit">£0</div>
+                    </div>
+                    <div class="metric-icon" style="color: #3b82f6;">📈</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div>
+                        <div class="metric-label">Avg Margin</div>
+                        <div class="metric-value" style="color: #8b5cf6;" id="avgMargin">0%</div>
+                    </div>
+                    <div class="metric-icon" style="color: #8b5cf6;">🎯</div>
+                </div>
+                
+                <div class="metric-card">
+                    <div>
+                        <div class="metric-label">Transactions</div>
+                        <div class="metric-value" style="color: #f59e0b;" id="totalTransactions">0</div>
+                    </div>
+                    <div class="metric-icon" style="color: #f59e0b;">👥</div>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem;">Promotional vs Non-Promotional Revenue</h3>
+                    <div class="chart-container">
+                        <canvas id="promoChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem;">Revenue by Category</h3>
+                    <div class="chart-container">
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem;">Monthly Revenue & Margin Trends</h3>
+                <div class="chart-container">
+                    <canvas id="monthlyChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Intelligence Tab -->
+        <div id="intelligence" class="tab-content hidden">
+            <div class="recommendations">
+                <h2>🧠 AI-Powered Strategic Recommendations</h2>
+                <div class="rec-grid" id="recommendationsContainer">
+                    <!-- Recommendations will be populated here -->
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem;">📉 Discount Depth Analysis</h3>
+                    <div class="chart-container">
+                        <canvas id="discountChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem;">👥 Customer Segment Profitability</h3>
+                    <div class="segment-grid" id="segmentContainer">
+                        <!-- Segments will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem;">⚡ Promotional Cannibalization Risk Assessment</h3>
+                <div style="overflow-x: auto;">
+                    <table class="table" id="cannibalizationTable">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th style="text-align: center;">Promo Share %</th>
+                                <th style="text-align: center;">Avg Discount %</th>
+                                <th style="text-align: center;">Risk Level</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Cannibalization data will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card" style="background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); color: white;">
+                <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 1rem;">Executive Summary</h3>
+                <div class="grid-2">
+                    <div>
+                        <h4 style="font-weight: 500; margin-bottom: 0.5rem;">Performance Overview</h4>
+                        <ul style="font-size: 0.875rem; opacity: 0.9;" id="performanceOverview">
+                            <!-- Performance metrics will be populated here -->
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 style="font-weight: 500; margin-bottom: 0.5rem;">Strategic Priorities</h4>
+                        <ul style="font-size: 0.875rem; opacity: 0.9;" id="strategicPriorities">
+                            <!-- Strategic priorities will be populated here -->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let globalData = [];
+        let analytics = {};
+        let charts = {};
+
+        const sampleData = [
+            { date: '2024-01-15', product: 'Oak Dining Table', category: 'Tables', price: 1200, cost: 600, quantity: 3, promotion: false, discount: 0, customer_segment: 'Premium' },
+            { date: '2024-01-16', product: 'Pine Bookshelf', category: 'Storage', price: 300, cost: 150, quantity: 5, promotion: true, discount: 0.15, customer_segment: 'Budget' },
+            { date: '2024-01-17', product: 'Walnut Coffee Table', category: 'Tables', price: 800, cost: 400, quantity: 2, promotion: false, discount: 0, customer_segment: 'Mid-Range' },
+            { date: '2024-01-18', product: 'Oak Dining Table', category: 'Tables', price: 1020, cost: 600, quantity: 4, promotion: true, discount: 0.15, customer_segment: 'Premium' },
+            { date: '2024-01-19', product: 'Maple Wardrobe', category: 'Storage', price: 1500, cost: 750, quantity: 1, promotion: false, discount: 0, customer_segment: 'Premium' },
+            { date: '2024-02-01', product: 'Pine Bookshelf', category: 'Storage', price: 270, cost: 150, quantity: 8, promotion: true, discount: 0.10, customer_segment: 'Budget' },
+            { date: '2024-02-02', product: 'Walnut Coffee Table', category: 'Tables', price: 720, cost: 400, quantity: 3, promotion: true, discount: 0.10, customer_segment: 'Mid-Range' },
+            { date: '2024-02-03', product: 'Oak Dining Table', category: 'Tables', price: 1200, cost: 600, quantity: 2, promotion: false, discount: 0, customer_segment: 'Premium' },
+            { date: '2024-02-15', product: 'Birch Chair Set', category: 'Seating', price: 400, cost: 200, quantity: 6, promotion: true, discount: 0.20, customer_segment: 'Mid-Range' },
+            { date: '2024-03-01', product: 'Oak Dining Table', category: 'Tables', price: 1080, cost: 600, quantity: 5, promotion: true, discount: 0.10, customer_segment: 'Premium' }
+        ];
+
+        function switchTab(tabName) {
+            console.log('Switching to tab:', tabName);
+            
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            const targetTab = document.getElementById(tabName);
+            if (targetTab) {
+                targetTab.classList.remove('hidden');
+            }
+            
+            // Mark the clicked tab as active
+            // Find the tab button that was clicked
+            document.querySelectorAll('.tab').forEach(tab => {
+                if (tab.textContent.toLowerCase().includes(tabName.toLowerCase()) || 
+                    tab.onclick?.toString().includes(tabName)) {
+                    tab.classList.add('active');
+                }
+            });
+        }
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            console.log('File selected:', file.name);
+            document.getElementById('loading').classList.remove('hidden');
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const text = e.target.result;
+                    console.log('File content loaded, length:', text.length);
+                    
+                    const lines = text.split('\n').filter(line => line.trim());
+                    console.log('Total lines:', lines.length);
+                    
+                    if (lines.length < 2) {
+                        throw new Error('File must have at least a header row and one data row');
+                    }
+                    
+                    const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+                    console.log('Headers found:', headers);
+                    
+                    // Check for required headers
+                    const requiredHeaders = ['date', 'product', 'category', 'price', 'cost', 'quantity'];
+                    const missingHeaders = requiredHeaders.filter(header => 
+                        !headers.some(h => h.includes(header))
+                    );
+                    
+                    if (missingHeaders.length > 0) {
+                        throw new Error(`Missing required columns: ${missingHeaders.join(', ')}`);
+                    }
+                    
+                    const parsedData = [];
+                    
+                    for (let i = 1; i < lines.length; i++) {
+                        const line = lines[i].trim();
+                        if (!line) continue;
+                        
+                        // Handle CSV parsing with potential quotes and commas
+                        const values = parseCSVLine(line);
+                        
+                        if (values.length !== headers.length) {
+                            console.warn(`Row ${i + 1} has ${values.length} values but expected ${headers.length}`);
+                            continue;
+                        }
+                        
+                        const row = {};
+                        headers.forEach((header, index) => {
+                            const value = values[index]?.trim().replace(/^["']|["']$/g, ''); // Remove quotes
+                            
+                            if (header.includes('price') || header.includes('cost') || header.includes('quantity') || header.includes('discount')) {
+                                row[header] = parseFloat(value) || 0;
+                            } else if (header.includes('promotion')) {
+                                row[header] = value === 'true' || value === '1' || value.toLowerCase() === 'true';
+                            } else {
+                                row[header] = value || '';
+                            }
+                        });
+                        
+                        // Validate required fields
+                        if (row.price > 0 && row.cost >= 0 && row.quantity > 0) {
+                            parsedData.push(row);
+                        }
+                    }
+                    
+                    console.log('Parsed data rows:', parsedData.length);
+                    console.log('Sample row:', parsedData[0]);
+                    
+                    if (parsedData.length === 0) {
+                        throw new Error('No valid data rows found. Please check your CSV format.');
+                    }
+                    
+                    processData(parsedData);
+                    
+                } catch (error) {
+                    console.error('Parse error:', error);
+                    alert(`Error parsing file: ${error.message}\n\nPlease ensure your CSV has the correct format with headers: date, product, category, price, cost, quantity, promotion, discount, customer_segment`);
+                } finally {
+                    document.getElementById('loading').classList.add('hidden');
+                }
+            };
+            
+            reader.onerror = function() {
+                console.error('File read error');
+                alert('Error reading file. Please try again.');
+                document.getElementById('loading').classList.add('hidden');
+            };
+            
+            reader.readAsText(file);
+        }
+
+        // Helper function to parse CSV lines with proper comma/quote handling
+        function parseCSVLine(line) {
+            const values = [];
+            let current = '';
+            let inQuotes = false;
+            
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                const nextChar = line[i + 1];
+                
+                if (char === '"' || char === "'") {
+                    if (inQuotes && nextChar === char) {
+                        // Escaped quote
+                        current += char;
+                        i++; // Skip next quote
+                    } else {
+                        // Toggle quote state
+                        inQuotes = !inQuotes;
+                    }
+                } else if (char === ',' && !inQuotes) {
+                    // End of field
+                    values.push(current);
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            
+            // Add final field
+            values.push(current);
+            
+            return values;
+        }
+
+        function loadSampleData() {
+            processData(sampleData);
+        }
+
+        function processData(data) {
+            console.log('Processing data:', data.length, 'rows');
+            globalData = data;
+            analytics = calculateAnalytics(data);
+            
+            console.log('Analytics calculated:', analytics);
+            
+            // Enable tabs
+            document.getElementById('dashboardTab').disabled = false;
+            document.getElementById('intelligenceTab').disabled = false;
+            
+            // Update tab button to show it's now clickable
+            document.getElementById('dashboardTab').style.opacity = '1';
+            document.getElementById('intelligenceTab').style.opacity = '1';
+            
+            // Switch to dashboard
+            switchTab('dashboard');
+            
+            // Update dashboard
+            updateDashboard();
+            updateIntelligence();
+            
+            // Show success message
+            console.log('Data processing complete!');
+        }
+
+        function calculateAnalytics(data) {
+            if (!data.length) return {};
+
+            const totalRevenue = data.reduce((sum, row) => sum + (row.price * row.quantity), 0);
+            const totalCost = data.reduce((sum, row) => sum + (row.cost * row.quantity), 0);
+            const totalProfit = totalRevenue - totalCost;
+            const avgMargin = ((totalProfit / totalRevenue) * 100).toFixed(1);
+
+            const promotionalSales = data.filter(row => row.promotion === true);
+            const nonPromotionalSales = data.filter(row => row.promotion === false);
+            
+            const promoRevenue = promotionalSales.reduce((sum, row) => sum + (row.price * row.quantity), 0);
+            const nonPromoRevenue = nonPromotionalSales.reduce((sum, row) => sum + (row.price * row.quantity), 0);
+            
+            const avgPromoDiscount = promotionalSales.length > 0 ? 
+                (promotionalSales.reduce((sum, row) => sum + row.discount, 0) / promotionalSales.length * 100).toFixed(1) : 0;
+
+            // Discount buckets
+            const discountBuckets = {
+                '0%': { transactions: 0, revenue: 0, profit: 0 },
+                '1-10%': { transactions: 0, revenue: 0, profit: 0 },
+                '11-15%': { transactions: 0, revenue: 0, profit: 0 },
+                '16-20%': { transactions: 0, revenue: 0, profit: 0 },
+                '20%+': { transactions: 0, revenue: 0, profit: 0 }
+            };
+
+            data.forEach(row => {
+                const discountPct = row.discount * 100;
+                let bucket;
+                if (discountPct === 0) bucket = '0%';
+                else if (discountPct <= 10) bucket = '1-10%';
+                else if (discountPct <= 15) bucket = '11-15%';
+                else if (discountPct <= 20) bucket = '16-20%';
+                else bucket = '20%+';
+
+                const revenue = row.price * row.quantity;
+                const profit = (row.price - row.cost) * row.quantity;
+
+                discountBuckets[bucket].transactions += 1;
+                discountBuckets[bucket].revenue += revenue;
+                discountBuckets[bucket].profit += profit;
+            });
+
+            // Customer segments
+            const segmentProfitability = data.reduce((acc, row) => {
+                const segment = row.customer_segment || 'Unknown';
+                if (!acc[segment]) {
+                    acc[segment] = { 
+                        revenue: 0, 
+                        profit: 0, 
+                        transactions: 0,
+                        promoTransactions: 0
+                    };
+                }
+                const revenue = row.price * row.quantity;
+                const profit = (row.price - row.cost) * row.quantity;
+                
+                acc[segment].revenue += revenue;
+                acc[segment].profit += profit;
+                acc[segment].transactions += 1;
+                
+                if (row.promotion === true) {
+                    acc[segment].promoTransactions += 1;
+                }
+                
+                return acc;
+            }, {});
+
+            Object.keys(segmentProfitability).forEach(segment => {
+                const segData = segmentProfitability[segment];
+                segData.avgOrderValue = segData.revenue / segData.transactions;
+                segData.margin = ((segData.profit / segData.revenue) * 100).toFixed(1);
+                segData.promoRate = ((segData.promoTransactions / segData.transactions) * 100).toFixed(1);
+            });
+
+            // Cannibalization
+            const productPromoAnalysis = {};
+            data.forEach(row => {
+                const product = row.product || 'Unknown Product';
+                if (!productPromoAnalysis[product]) {
+                    productPromoAnalysis[product] = { 
+                        promoSales: 0, 
+                        totalVolume: 0,
+                        avgPromoDiscount: 0,
+                        promoCount: 0
+                    };
+                }
+                
+                if (row.promotion === true) {
+                    productPromoAnalysis[product].promoSales += row.quantity;
+                    productPromoAnalysis[product].avgPromoDiscount += row.discount;
+                    productPromoAnalysis[product].promoCount += 1;
+                }
+                productPromoAnalysis[product].totalVolume += row.quantity;
+            });
+
+            const cannibalizationRisk = Object.entries(productPromoAnalysis)
+                .map(([product, metrics]) => {
+                    const promoShare = (metrics.promoSales / metrics.totalVolume) * 100;
+                    const avgDiscount = metrics.promoCount > 0 ? 
+                        (metrics.avgPromoDiscount / metrics.promoCount * 100) : 0;
+                    
+                    return {
+                        product,
+                        promoShare: promoShare.toFixed(1),
+                        avgDiscount: avgDiscount.toFixed(1),
+                        risk: promoShare > 60 ? 'High' : promoShare > 30 ? 'Medium' : 'Low'
+                    };
+                })
+                .sort((a, b) => parseFloat(b.promoShare) - parseFloat(a.promoShare));
+
+            // Categories
+            const categoryData = data.reduce((acc, row) => {
+                const category = row.category || 'Unknown';
+                if (!acc[category]) {
+                    acc[category] = { revenue: 0, quantity: 0, profit: 0 };
+                }
+                acc[category].revenue += row.price * row.quantity;
+                acc[category].quantity += row.quantity;
+                acc[category].profit += (row.price - row.cost) * row.quantity;
+                return acc;
+            }, {});
+
+            // Monthly data
+            const monthlyData = data.reduce((acc, row) => {
+                const month = row.date ? row.date.substring(0, 7) : 'Unknown';
+                if (!acc[month]) {
+                    acc[month] = { revenue: 0, quantity: 0, profit: 0 };
+                }
+                acc[month].revenue += row.price * row.quantity;
+                acc[month].quantity += row.quantity;
+                acc[month].profit += (row.price - row.cost) * row.quantity;
+                return acc;
+            }, {});
+
+            Object.keys(monthlyData).forEach(month => {
+                monthlyData[month].margin = ((monthlyData[month].profit / monthlyData[month].revenue) * 100).toFixed(1);
+            });
+
+            return {
+                totalRevenue,
+                totalProfit,
+                avgMargin,
+                promoRevenue,
+                nonPromoRevenue,
+                avgPromoDiscount,
+                discountBuckets,
+                segmentProfitability,
+                cannibalizationRisk,
+                categoryData,
+                monthlyData,
+                totalTransactions: data.length,
+                promotionalTransactions: promotionalSales.length
+            };
+        }
+
+        function formatCurrency(amount) {
+            return '£' + amount.toLocaleString();
+        }
+
+        function updateDashboard() {
+            // Update metrics
+            document.getElementById('totalRevenue').textContent = formatCurrency(analytics.totalRevenue);
+            document.getElementById('totalProfit').textContent = formatCurrency(analytics.totalProfit);
+            document.getElementById('avgMargin').textContent = analytics.avgMargin + '%';
+            document.getElementById('totalTransactions').textContent = analytics.totalTransactions;
+
+            // Destroy existing charts
+            Object.values(charts).forEach(chart => {
+                if (chart) chart.destroy();
+            });
+
+            // Create promotional revenue pie chart
+            const promoCtx = document.getElementById('promoChart').getContext('2d');
+            charts.promo = new Chart(promoCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Promotional', 'Non-Promotional'],
+                    datasets: [{
+                        data: [analytics.promoRevenue, analytics.nonPromoRevenue],
+                        backgroundColor: ['#ff8042', '#0088fe'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const total = analytics.promoRevenue + analytics.nonPromoRevenue;
+                                    const percentage = ((context.parsed / total) * 100).toFixed(1);
+                                    return context.label + ': ' + formatCurrency(context.parsed) + ' (' + percentage + '%)';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Create category revenue chart
+            const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+            const categoryEntries = Object.entries(analytics.categoryData);
+            charts.category = new Chart(categoryCtx, {
+                type: 'bar',
+                data: {
+                    labels: categoryEntries.map(([category]) => category),
+                    datasets: [{
+                        label: 'Revenue',
+                        data: categoryEntries.map(([, data]) => data.revenue),
+                        backgroundColor: '#0088fe',
+                        borderRadius: 4
+                    }, {
+                        label: 'Profit',
+                        data: categoryEntries.map(([, data]) => data.profit),
+                        backgroundColor: '#00c49f',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + formatCurrency(context.parsed.y);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return formatCurrency(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Create monthly trends chart
+            const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+            const monthlyEntries = Object.entries(analytics.monthlyData).sort();
+            charts.monthly = new Chart(monthlyCtx, {
+                type: 'line',
+                data: {
+                    labels: monthlyEntries.map(([month]) => month),
+                    datasets: [{
+                        label: 'Revenue',
+                        data: monthlyEntries.map(([, data]) => data.revenue),
+                        borderColor: '#0088fe',
+                        backgroundColor: 'rgba(0, 136, 254, 0.1)',
+                        yAxisID: 'y'
+                    }, {
+                        label: 'Margin %',
+                        data: monthlyEntries.map(([, data]) => parseFloat(data.margin)),
+                        borderColor: '#ff8042',
+                        backgroundColor: 'rgba(255, 128, 66, 0.1)',
+                        yAxisID: 'y1'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            ticks: {
+                                callback: function(value) {
+                                    return formatCurrency(value);
+                                }
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateIntelligence() {
+            // Generate recommendations
+            const recommendations = generateRecommendations();
+            const recContainer = document.getElementById('recommendationsContainer');
+            recContainer.innerHTML = recommendations.map(rec => `
+                <div class="rec-card">
+                    <div class="rec-header">
+                        <div class="rec-title">${rec.title}</div>
+                        <span class="priority-badge priority-${rec.priority.toLowerCase()}">${rec.priority}</span>
+                    </div>
+                    <div class="rec-description">${rec.description}</div>
+                    <div class="rec-impact">✓ ${rec.impact}</div>
+                </div>
+            `).join('');
+
+            // Create discount depth chart
+            const discountCtx = document.getElementById('discountChart').getContext('2d');
+            const discountEntries = Object.entries(analytics.discountBuckets);
+            if (charts.discount) charts.discount.destroy();
+            charts.discount = new Chart(discountCtx, {
+                type: 'bar',
+                data: {
+                    labels: discountEntries.map(([bucket]) => bucket),
+                    datasets: [{
+                        label: 'Revenue',
+                        data: discountEntries.map(([, data]) => data.revenue),
+                        backgroundColor: '#0088fe',
+                        borderRadius: 4
+                    }, {
+                        label: 'Profit',
+                        data: discountEntries.map(([, data]) => data.profit),
+                        backgroundColor: '#00c49f',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + formatCurrency(context.parsed.y);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return formatCurrency(value);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Update customer segments
+            const segmentContainer = document.getElementById('segmentContainer');
+            const colors = ['#0088fe', '#00c49f', '#ffbb28', '#ff8042', '#8884d5'];
+            segmentContainer.innerHTML = Object.entries(analytics.segmentProfitability).map(([segment, data], index) => `
+                <div class="segment-card">
+                    <div class="segment-header">
+                        <div class="segment-name" style="color: ${colors[index % colors.length]}">${segment}</div>
+                        <span class="margin-badge">${data.margin}% margin</span>
+                    </div>
+                    <div class="segment-metrics">
+                        <div>Revenue: ${formatCurrency(data.revenue)}</div>
+                        <div>AOV: ${formatCurrency(data.avgOrderValue)}</div>
+                        <div>Orders: ${data.transactions}</div>
+                        <div>Promo Rate: ${data.promoRate}%</div>
+                    </div>
+                </div>
+            `).join('');
+
+            // Update cannibalization table
+            const tableBody = document.querySelector('#cannibalizationTable tbody');
+            tableBody.innerHTML = analytics.cannibalizationRisk.slice(0, 8).map(item => `
+                <tr>
+                    <td style="font-weight: 500;">${item.product}</td>
+                    <td style="text-align: center;">${item.promoShare}%</td>
+                    <td style="text-align: center;">${item.avgDiscount}%</td>
+                    <td style="text-align: center;">
+                        <span class="risk-badge risk-${item.risk.toLowerCase()}">${item.risk}</span>
+                    </td>
+                </tr>
+            `).join('');
+
+            // Update executive summary
+            const performanceOverview = document.getElementById('performanceOverview');
+            const strategicPriorities = document.getElementById('strategicPriorities');
+            
+            performanceOverview.innerHTML = `
+                <li>Total Revenue: ${formatCurrency(analytics.totalRevenue)}</li>
+                <li>Average Margin: ${analytics.avgMargin}%</li>
+                <li>Promotional Sales: ${((analytics.promotionalTransactions / analytics.totalTransactions) * 100).toFixed(1)}%</li>
+                <li>Avg Promotional Discount: ${analytics.avgPromoDiscount}%</li>
+            `;
+
+            const topSegment = Object.entries(analytics.segmentProfitability)
+                .sort((a, b) => parseFloat(b[1].margin) - parseFloat(a[1].margin))[0];
+            const topCategory = Object.entries(analytics.categoryData)
+                .sort((a, b) => parseFloat(a[1].profit / a[1].revenue) - parseFloat(b[1].profit / b[1].revenue))[0];
+
+            strategicPriorities.innerHTML = `
+                <li>Focus on ${topSegment ? topSegment[0] : 'high-margin'} segment</li>
+                <li>Optimize ${topCategory ? topCategory[0] : 'low-margin'} category pricing</li>
+                <li>Reduce promotional dependency</li>
+                <li>Implement dynamic pricing strategies</li>
+            `;
+        }
+
+        function generateRecommendations() {
+            const recs = [];
+
+            if (parseFloat(analytics.avgMargin) < 45) {
+                recs.push({
+                    priority: 'High',
+                    title: 'Optimize Pricing Strategy',
+                    description: `Current margin of ${analytics.avgMargin}% is below furniture industry standard (45-55%).`,
+                    impact: 'Revenue increase of 5-15% possible'
+                });
+            }
+
+            if (parseFloat(analytics.avgPromoDiscount) > 15) {
+                recs.push({
+                    priority: 'Medium',
+                    title: 'Reduce Discount Depth',
+                    description: `Average discount of ${analytics.avgPromoDiscount}% may be eroding margins.`,
+                    impact: 'Margin improvement of 2-4%'
+                });
+            }
+
+            const segments = Object.entries(analytics.segmentProfitability || {});
+            if (segments.length > 1) {
+                const mostProfitable = segments.sort((a, b) => parseFloat(b[1].margin) - parseFloat(a[1].margin))[0];
+                recs.push({
+                    priority: 'High',
+                    title: 'Focus on High-Value Segments',
+                    description: `${mostProfitable[0]} segment shows ${mostProfitable[1].margin}% margin with ${mostProfitable[1].promoRate}% promo rate.`,
+                    impact: 'Overall margin improvement of 3-7%'
+                });
+            }
+
+            const highRiskProducts = analytics.cannibalizationRisk?.filter(p => p.risk === 'High') || [];
+            if (highRiskProducts.length > 0) {
+                recs.push({
+                    priority: 'Medium',
+                    title: 'Address Promotional Cannibalization',
+                    description: `${highRiskProducts.length} products show high promotional dependency.`,
+                    impact: 'Reduced promotional dependency by 20-30%'
+                });
+            }
+
+            return recs.slice(0, 4);
+        }
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set up initial state
+            console.log('Pricing Analysis App loaded successfully');
+        });
+    </script>
+</body>
+</html>
